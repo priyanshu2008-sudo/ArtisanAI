@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ ui('help') }} — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header">
+  <div class="badge">{{ ui('help')|upper }}</div>
+  <h1>{{ ui('help_title') }}</h1>
+  <p>{{ ui('help_intro') }}</p>
+</div>
+
+<div class="help-grid">
+  <div class="help-card">
+    <div class="help-num">1</div>
+    <h2>📷 {{ ui('step1') }}</h2>
+    <p>{{ ui('step1_d') }}</p>
+  </div>
+  <div class="help-card">
+    <div class="help-num">2</div>
+    <h2>🎙️ {{ ui('step2') }}</h2>
+    <p>{{ ui('step2_d') }}</p>
+  </div>
+  <div class="help-card">
+    <div class="help-num">3</div>
+    <h2>💰 {{ ui('step3') }}</h2>
+    <p>{{ ui('step3_d') }}</p>
+  </div>
+  <div class="help-card">
+    <div class="help-num">4</div>
+    <h2>✅ {{ ui('step4') }}</h2>
+    <p>{{ ui('step4_d') }}</p>
+  </div>
+</div>
+
+<div class="help-card" style="margin-top:20px">
+  <h2>🔐 {{ ui('help_login') }}</h2>
+  <p>{{ ui('help_login_d') }}</p>
+</div>
+
+<div class="hero-actions" style="margin-top:24px">
+  <a class="btn primary" href="{{ url_for('add_product') if user else url_for('register') }}">{{ ui('start') }}</a>
+  <a class="btn secondary" href="{{ url_for('marketplace') }}">{{ ui('view_market') }}</a>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}B2B — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header">
+  <div class="badge">B2B</div>
+  <h1>{{ ui('b2b') }} · Bulk inquiries</h1>
+  <p>Connect with artisans for larger quantities.</p>
+</div>
+
+{% if not user %}
+<div class="empty">
+  <h2>Login required</h2>
+  <p>Please login to send a B2B inquiry.</p>
+  <a class="btn primary" href="{{ url_for('login') }}">{{ ui('login') }}</a>
+</div>
+{% endif %}
+
+{% if products %}
+<div class="product-grid">
+{% for p in products %}
+  <div class="product-card" style="padding:16px">
+    <div class="card-badges"><span class="badge">{{ p.category or p['category'] }}</span></div>
+    <h3>{{ p.name or p['name'] }}</h3>
+    <p class="muted">{{ (p.artisan or p['artisan']) }} · {{ p.state or p['state'] }}</p>
+    <p class="price">₹{{ '%.0f'|format(p.price or p['price'] or 0) }}</p>
+    {% if user %}
+    <form method="post" action="{{ url_for('b2b') }}" style="margin-top:12px">
+      <input type="hidden" name="product_id" value="{{ p.id or p['id'] }}">
+      <input type="hidden" name="buyer_name" value="{{ user.name or user['name'] or '' }}">
+      <input type="hidden" name="buyer_phone" value="{{ user.phone or user['phone'] or '' }}">
+      <input type="hidden" name="buyer_email" value="{{ user.email or user['email'] or '' }}">
+      <label>Quantity
+        <input name="quantity" type="number" min="1" value="10" required>
+      </label>
+      <label>Message
+        <textarea name="message" rows="2" placeholder="Bulk order details..."></textarea>
+      </label>
+      <button class="btn primary" type="submit" style="margin-top:8px;width:100%">Send B2B Inquiry</button>
+    </form>
+    {% endif %}
+  </div>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <h2>No products yet</h2>
+  <p>Artisans can publish products first.</p>
+  <a class="btn secondary" href="{{ url_for('marketplace') }}">{{ ui('marketplace') }}</a>
+</div>
+{% endif %}
+{% endblock %}

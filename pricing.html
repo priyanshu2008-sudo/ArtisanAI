@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Pricing — ArtisanAI{% endblock %}
+{% block content %}
+<div class="page-title center"><div><div class="badge">PROTOTYPE PLANS</div><h1>Smart pricing — completely free</h1><p>AI-assisted smart pricing is free in this prototype. No paid plan is required.</p></div></div>
+<div class="pricing-grid one-plan">
+  <div class="plan"><h2>Starter</h2><div class="plan-price">Free</div><p>For new artisans</p><ul><li>Basic catalog</li><li>Product listing</li><li>Marketplace visibility</li></ul><a class="btn secondary full" href="{{ url_for('register') }}">Start Free</a></div>
+  
+</div>
+{% endblock %}

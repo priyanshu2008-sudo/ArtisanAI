@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}ArtisanAI — {{ ui('marketplace') }}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="badge">{{ ui('hero_badge') }}</div>
+  <h1>{{ ui('hero_title') }}</h1>
+  <p>{{ ui('hero_sub') }}</p>
+  <div class="hero-actions">
+    <a class="btn primary" href="{{ url_for('marketplace') }}">{{ ui('explore') }}</a>
+    {% if user %}
+      <a class="btn secondary" href="{{ url_for('add_product') }}">{{ ui('open_studio') }}</a>
+    {% else %}
+      <a class="btn secondary" href="{{ url_for('register') }}">{{ ui('start_free') }}</a>
+    {% endif %}
+    <a class="btn secondary" href="{{ url_for('help_page') }}">{{ ui('help') }}</a>
+  </div>
+</section>
+
+<div class="ai-feature-grid">
+  <div class="ai-feature-card">
+    <h3>1. {{ ui('feat1') }}</h3>
+    <p>{{ ui('feat1_d') }}</p>
+  </div>
+  <div class="ai-feature-card">
+    <h3>2. {{ ui('feat2') }}</h3>
+    <p>{{ ui('feat2_d') }}</p>
+  </div>
+  <div class="ai-feature-card">
+    <h3>3. {{ ui('feat3') }}</h3>
+    <p>{{ ui('feat3_d') }}</p>
+  </div>
+  <div class="ai-feature-card">
+    <h3>{{ ui('feat4') }}</h3>
+    <p>{{ ui('feat4_d') }}</p>
+  </div>
+</div>
+
+{% if featured %}
+<h2>{{ ui('marketplace') }}</h2>
+<div class="product-grid">
+{% for p in featured %}
+  {% include '_product_card.html' %}
+{% endfor %}
+</div>
+{% else %}
+<div class="ai-feature-card" style="margin:24px 0;text-align:center">
+  <p class="muted">{{ ui('empty_cart') }} — {{ ui('open_studio') }}</p>
+  <div class="hero-actions" style="justify-content:center">
+    <a class="btn primary" href="{{ url_for('add_product') }}">{{ ui('open_studio') }}</a>
+    <a class="btn secondary" href="{{ url_for('register') }}">{{ ui('register') }}</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

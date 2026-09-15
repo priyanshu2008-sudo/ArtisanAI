@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Wishlist — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header"><div class="badge">WISHLIST</div><h1>Your Saved Products</h1></div>
+{% if products %}
+<div class="product-grid">
+{% for p in products %}
+  {% include '_product_card.html' %}
+{% endfor %}
+</div>
+{% else %}
+<p class="muted">Your wishlist is empty. Browse the <a href="{{ url_for('marketplace') }}">Marketplace</a> and heart products you love.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Buyers — ArtisanAI{% endblock %}
+{% block content %}
+<div class="page-title">
+  <div>
+    <div class="badge">BUYER INSIGHTS</div>
+    <h1>Buyer overview</h1>
+    <p>Prototype buyer information from locally stored accounts and orders.</p>
+  </div>
+  <div>
+    <a class="btn primary" href="{{ url_for('buyer_register') }}">Register as Buyer</a>
+  </div>
+</div>
+<div class="table-wrap"><table>
+<thead><tr><th>Buyer</th><th>State</th><th>Prototype Orders</th></tr></thead>
+<tbody>
+{% for b in buyers %}<tr><td>{{ b['name'] }}</td><td>{{ b['state'] }}</td><td>{{ b['orders'] }}</td></tr>{% else %}<tr><td colspan="3">No buyers registered yet.</td></tr>{% endfor %}
+</tbody>
+</table></div>
+{% endblock %}

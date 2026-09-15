@@ -1,0 +1,19 @@
+{
+  "name": "ArtisanAI — Smart Catalog for Artisans",
+  "short_name": "ArtisanAI",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f7f4ed",
+  "theme_color": "#5d4037",
+  "description": "AI-powered virtual business manager: camera studio, voice catalog & smart pricing for Indian artisans and weavers.",
+  "icons": [
+    {
+      "src": "/static/images/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "shopping", "productivity"]
+}

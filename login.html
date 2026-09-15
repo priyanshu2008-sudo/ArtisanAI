@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Login — ArtisanAI{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" width="56" height="56" style="border-radius:50%;margin-bottom:8px">
+    <h1>Welcome back</h1>
+    <p>Login with OTP or password</p>
+
+    {% if mode == 'otp' %}
+    <form method="post">
+      <input type="hidden" name="mode" value="otp">
+      <input type="hidden" name="phone" value="{{ phone }}">
+      <p class="muted">OTP sent to <strong>{{ phone }}</strong></p>
+      {% if demo_otp %}<div class="flash success" style="margin:10px 0">Demo OTP: <strong style="font-size:1.3rem">{{ demo_otp }}</strong></div>{% endif %}
+      <label>Enter 6-digit OTP<input name="otp" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autofocus></label>
+      <button class="btn primary full" type="submit">Login with OTP</button>
+    </form>
+    <p class="auth-foot"><a href="{{ url_for('login') }}">← Use password instead</a></p>
+
+    {% else %}
+    <form method="post" id="otpForm">
+      <input type="hidden" name="mode" value="send_otp">
+      <label>Mobile number<input name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="9876543210" required></label>
+      <button class="btn primary full" type="submit">Send OTP</button>
+    </form>
+    <hr style="margin:20px 0;border:none;border-top:1px solid #e7e1d5">
+    <p class="muted" style="text-align:center">or login with password</p>
+    <form method="post">
+      <input type="hidden" name="mode" value="password">
+      <label>Mobile or Email<input name="phone" placeholder="Mobile number"></label>
+      <label style="display:none">Email<input name="email" type="email"></label>
+      <label>Password<input name="password" type="password" required></label>
+      <button class="btn secondary full" type="submit">Login with Password</button>
+    </form>
+    <p class="auth-foot">
+      <a href="{{ url_for('forgot_password') }}">Forgot password?</a> ·
+      <a href="{{ url_for('register') }}">Create account</a>
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

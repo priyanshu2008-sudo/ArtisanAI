@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Checkout — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header">
+  <div class="badge">CHECKOUT</div>
+  <h1>{{ ui('place_order') }}</h1>
+</div>
+
+{% if product %}
+<div class="checkout-product" style="display:flex;gap:16px;align-items:center;margin-bottom:20px;padding:16px;background:#fff;border-radius:14px;border:1px solid var(--line)">
+  <div style="width:80px;height:80px;background:#f0ebe3;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+    {% if product['image'] %}
+      <img src="{{ url_for('uploaded_file', filename=product['image']) }}" alt="" style="width:100%;height:100%;object-fit:cover">
+    {% else %}🎨{% endif %}
+  </div>
+  <div>
+    <b>{{ product['name'] }}</b>
+    <p class="muted">₹{{ '%.2f'|format(product['price'] or 0) }} · {{ product['category'] or '' }}</p>
+  </div>
+</div>
+{% endif %}
+
+<form method="post" class="product-form" style="max-width:720px">
+  <div class="form-grid">
+    <label>Name<input name="buyer_name" value="{{ user['name'] if user else '' }}" required></label>
+    <label>Mobile<input name="buyer_phone" value="{{ user['phone'] if user else '' }}"></label>
+    <label>Email<input name="buyer_email" type="email" value="{{ user['email'] if user else '' }}"></label>
+    <label>Quantity<input id="qty" name="quantity" type="number" min="1" value="1"></label>
+    <label>City / Village<input name="village_city" value="{{ user['city'] if user else '' }}"></label>
+    <label>District<input name="district" value="{{ user['district'] if user else '' }}"></label>
+    <label>State
+      <select id="state" name="buyer_state">
+        {% for s in states %}
+        <option value="{{ s }}" {% if s == selected_state %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Pincode<input name="pincode" value="{{ user['pincode'] if user else '' }}"></label>
+  </div>
+  <label>Address<textarea name="address" rows="2"></textarea></label>
+  <label>Payment
+    <select name="payment_method">
+      <option>Prototype UPI</option>
+      <option>Prototype Card</option>
+      <option>Cash on Delivery (Prototype)</option>
+    </select>
+  </label>
+
+  <div class="charge-result" style="margin:16px 0;padding:16px;border-radius:12px;background:#f8f4eb;border:1px solid var(--line)">
+    <div style="display:flex;justify-content:space-between;margin:6px 0"><span>{{ ui('transport') }} (state-wise)</span><b id="transport">₹{{ '%.2f'|format(transport|float) }}</b></div>
+    <div style="display:flex;justify-content:space-between;margin:6px 0"><span>Subtotal</span><b id="subtotalDisplay">₹{{ '%.2f'|format(subtotal|float) }}</b></div>
+    <hr>
+    <div style="display:flex;justify-content:space-between;margin:6px 0;font-size:1.15rem"><span><strong>Total</strong></span><b id="grandTotal">₹{{ '%.2f'|format(grand_total|float) }}</b></div>
+  </div>
+
+  <button class="btn buy-now" type="submit" style="width:100%;min-height:52px;font-size:1.1rem">{{ ui('place_order') }} / Buy Now</button>
+  <p class="note">Prototype only — no real payment is charged.</p>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var stateEl = document.getElementById('state');
+  var qtyEl = document.getElementById('qty');
+  var unitPrice = {{ (product['price'] if product else 0)|tojson }};
+  function refresh(){
+    if(!stateEl) return;
+    var q = parseInt((qtyEl && qtyEl.value) || '1', 10);
+    if(isNaN(q) || q < 1) q = 1;
+    fetch('/api/transport/' + encodeURIComponent(stateEl.value))
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var t = Number(d.transport || 0);
+        var sub = Number(unitPrice) * q;
+        var elT = document.getElementById('transport');
+        var elS = document.getElementById('subtotalDisplay');
+        var elG = document.getElementById('grandTotal');
+        if(elT) elT.textContent = '₹' + t.toFixed(2);
+        if(elS) elS.textContent = '₹' + sub.toFixed(2);
+        if(elG) elG.textContent = '₹' + (sub + t).toFixed(2);
+      }).catch(function(){});
+  }
+  if(stateEl) stateEl.addEventListener('change', refresh);
+  if(qtyEl) qtyEl.addEventListener('input', refresh);
+})();
+</script>
+{% endblock %}

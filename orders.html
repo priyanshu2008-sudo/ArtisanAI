@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}My Orders — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header"><div class="badge">ORDERS</div><h1>Order History & Tracking</h1></div>
+{% if orders %}
+<div class="table-wrap">
+<table class="data-table">
+<thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Total</th><th>Status</th><th>Tracking</th><th>Date</th></tr></thead>
+<tbody>
+{% for o in orders %}
+<tr>
+  <td>{{ o.id }}</td>
+  <td>{{ o.product_name }}</td>
+  <td>{{ o.quantity }}</td>
+  <td>₹{{ '%.0f'|format(o.total) }}</td>
+  <td><span class="badge">{{ o.status }}</span></td>
+  <td>{{ o.tracking_note }}</td>
+  <td>{{ o.created_at[:16] if o.created_at else '' }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">No orders yet. Start shopping in the <a href="{{ url_for('marketplace') }}">Marketplace</a>.</p>
+{% endif %}
+{% endblock %}

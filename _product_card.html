@@ -1,0 +1,28 @@
+<article class="product-card">
+  <a href="{{ url_for('product', pid=p.id) }}" class="card-img-wrap">
+    {% if p.image %}
+      <img src="{{ url_for('uploaded_file', filename=p.image) }}" alt="{{ p.name }}" loading="lazy">
+    {% else %}
+      <div class="no-img">🎨</div>
+    {% endif %}
+  </a>
+  <div class="card-body">
+    <div class="card-badges">
+      {% if p.gi_status %}<span class="badge gi">GI</span>{% endif %}
+      {% if p.odop_status %}<span class="badge odop">ODOP</span>{% endif %}
+      {% if p.verified_artisan %}<span class="badge verified">✓ Verified</span>{% endif %}
+    </div>
+    <h3><a href="{{ url_for('product', pid=p.id) }}">{{ p.name }}</a></h3>
+    <p class="muted">{{ p.category }} · {{ p.state }}</p>
+    <p class="price">₹{{ '%.0f'|format(p.price) }}</p>
+    <div class="card-actions">
+      <a class="btn primary" href="{{ url_for('cart_add', pid=p.id) }}">Add to Cart</a>
+      <a class="btn buy-now" href="{{ url_for('buy_now', pid=p.id) }}">{{ ui("buy_now") }}</a>
+      {% if user %}
+        <a class="btn secondary" href="{{ url_for('wishlist_toggle', pid=p.id) }}" title="Wishlist">
+          {% if p.id in wishlist_ids %}❤️{% else %}🤍{% endif %}
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</article>

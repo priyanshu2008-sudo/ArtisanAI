@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header">
+  <div class="badge">DASHBOARD</div>
+  <h1>Hello, {{ user['name'] }}</h1>
+  <p>{{ user['state'] or '' }}</p>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><strong>{{ products|length }}</strong><span>Products</span></div>
+  <div class="stat-card"><strong>{{ total_views or 0 }}</strong><span>Views</span></div>
+  <div class="stat-card"><strong>{{ total_sold or 0 }}</strong><span>Sold</span></div>
+  <div class="stat-card"><strong>₹{{ '%.0f'|format(revenue or 0) }}</strong><span>Revenue</span></div>
+</div>
+
+<div class="hero-actions" style="margin:18px 0">
+  <a class="btn primary" href="{{ url_for('add_product') }}">{{ ui('add') }}</a>
+  <a class="btn secondary" href="{{ url_for('marketplace') }}">{{ ui('marketplace') }}</a>
+</div>
+
+{% if notifications %}
+<h2>Notifications</h2>
+<ul class="notif-list">
+{% for n in notifications[:5] %}
+  <li><strong>{{ n['title'] }}</strong><p>{{ n['body'] }}</p></li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<h2>Your Products</h2>
+{% if products %}
+<div class="product-grid">
+{% for p in products %}
+<article class="product-card">
+  <a href="{{ url_for('product', pid=p['id']) }}" class="card-img-wrap">
+    {% if p['image'] %}
+      <img src="{{ url_for('uploaded_file', filename=p['image']) }}" alt="{{ p['name'] }}">
+    {% else %}<div class="no-img">🎨</div>{% endif %}
+  </a>
+  <div class="card-body">
+    <h3><a href="{{ url_for('product', pid=p['id']) }}">{{ p['name'] }}</a></h3>
+    <p class="muted">{{ p['category'] }} · ₹{{ '%.0f'|format(p['price'] or 0) }}</p>
+    <p class="muted">Views: {{ p['views'] or 0 }} · Sold: {{ p['sold'] or 0 }}</p>
+    <div class="card-actions">
+      <a class="btn primary" href="{{ url_for('product', pid=p['id']) }}">View</a>
+      <a class="btn secondary" href="{{ url_for('toggle_verified', pid=p['id']) }}">
+        {% if p['verified_artisan'] %}✓ Verified{% else %}Mark Verified Artisan{% endif %}
+      </a>
+      <a class="btn secondary" href="{{ url_for('delete_product', pid=p['id']) }}"
+         onclick="return confirm('Delete this product?');" style="background:#b33a3a;color:#fff">{{ ui('delete') }}</a>
+    </div>
+  </div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<p class="muted">No products yet. Use AI Studio to add one.</p>
+{% endif %}
+
+{% if orders %}
+<h2>Recent Orders (as seller)</h2>
+<div class="table-wrap">
+<table class="data-table">
+<thead><tr><th>#</th><th>Product</th><th>Qty</th><th>Buyer</th><th>Total</th><th>Status</th></tr></thead>
+<tbody>
+{% for o in orders %}
+<tr>
+  <td>{{ o['id'] }}</td>
+  <td>{{ o['product_name'] }}</td>
+  <td>{{ o['quantity'] }}</td>
+  <td>{{ o['buyer_name'] }}</td>
+  <td>₹{{ '%.0f'|format(o['total'] or 0) }}</td>
+  <td>{{ o['status'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+<h2>B2B Inquiry Notifications</h2>
+{% if inquiries %}
+<ul class="notif-list">
+{% for i in inquiries %}
+  <li>
+    <strong>New B2B Inquiry</strong>
+    <p>{{ i['buyer_name'] }} asked about <strong>{{ i['product_name'] }}</strong> · Qty: {{ i['quantity'] or 1 }}</p>
+    {% if i['message'] %}<p class="muted">{{ i['message'] }}</p>{% endif %}
+  </li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="muted">No B2B inquiries yet.</p>
+{% endif %}
+{% endblock %}

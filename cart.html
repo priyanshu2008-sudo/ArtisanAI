@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Cart — ArtisanAI{% endblock %}
+{% block content %}
+<div class="form-header">
+  <div class="badge">CART</div>
+  <h1>{{ ui('cart') }}</h1>
+</div>
+
+{% if items and items|length > 0 %}
+<div class="cart-layout">
+  <div>
+    <form method="post" action="{{ url_for('update_cart') }}">
+      {% for item in items %}
+      <div class="cart-item">
+        <div class="cart-thumb">
+          {% if item.product['image'] %}
+            <img src="{{ url_for('uploaded_file', filename=item.product['image']) }}" alt="">
+          {% else %}<span>🎨</span>{% endif %}
+        </div>
+        <div class="cart-info">
+          <h3>{{ item.product['name'] }}</h3>
+          <p>{{ item.product['category'] }} · {{ item.product['state'] }}</p>
+          <strong>₹{{ '%.2f'|format(item.product['price'] or 0) }}</strong>
+        </div>
+        <div class="qty">
+          <label>Qty
+            <input type="number" min="1" max="99" name="qty_{{ item.product['id'] }}" value="{{ item.quantity }}">
+          </label>
+        </div>
+        <a class="icon-btn" href="{{ url_for('cart_remove', pid=item.product['id']) }}">✕</a>
+      </div>
+      {% endfor %}
+      <button class="btn secondary" type="submit">Update Cart</button>
+    </form>
+  </div>
+  <aside class="summary">
+    <h2>Order Summary</h2>
+    <label>Delivery state
+      <select id="cart-state" onchange="location.href='{{ url_for('cart') }}?state='+encodeURIComponent(this.value)">
+        {% for s in states %}
+        <option value="{{ s }}" {% if s == selected_state %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="summary-row"><span>Subtotal</span><b>₹{{ '%.2f'|format(subtotal or 0) }}</b></div>
+    <div class="summary-row"><span>{{ ui('transport') }}</span><b>₹{{ '%.2f'|format(transport or 0) }}</b></div>
+    <hr>
+    <div class="summary-row total"><span>Total</span><b>₹{{ '%.2f'|format(grand_total or 0) }}</b></div>
+    <p class="note">State-wise transport charge (prototype rates).</p>
+    <a class="btn buy-now full" href="{{ url_for('checkout') }}" style="display:block;text-align:center;margin-top:12px">{{ ui('place_order') }} / Checkout</a>
+  </aside>
+</div>
+{% else %}
+<div class="empty">
+  <h2>Your cart is empty</h2>
+  <p>Add products from the marketplace.</p>
+  <a class="btn primary" href="{{ url_for('marketplace') }}">{{ ui('marketplace') }}</a>
+</div>
+{% endif %}
+{% endblock %}

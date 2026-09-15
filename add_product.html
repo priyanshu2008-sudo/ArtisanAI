@@ -1,0 +1,109 @@
+{% extends 'base.html' %}{% block title %}Smart Artisan Studio — ArtisanAI{% endblock %}{% block content %}<div class="form-page"><div class="form-header"><div class="badge">SMART ARTISAN STUDIO</div><h1>Create a market-ready catalog</h1><p>Simple 4 steps — Photo → Voice/Description → Price → Save. Designed for easy use.</p>
+<div class="steps-bar" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
+  <span class="badge">1. 📷 Photo</span>
+  <span class="badge">2. 🎙️ Describe</span>
+  <span class="badge">3. 💰 Price</span>
+  <span class="badge">4. ✅ Save</span>
+</div></div>
+<form class="product-form" id="productForm" method="post" enctype="multipart/form-data"><div class="form-grid"><label>Product name<input id="productName" name="name" required></label><label>Category<select id="productCategory" name="category" required>{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label><label>Price (₹)<input id="productPrice" type="number" name="price" min="1" step="0.01" required></label><label>Stock quantity<input name="stock" type="number" min="1" value="1"></label><label>Artisan state<select id="productState" name="state">{% for s in states %}<option>{{ s }}</option>{% endfor %}</select></label><label>Material<input id="material" name="material" placeholder="clay, bamboo, cotton..."></label><label>Best use<input id="bestUse" name="best_use" placeholder="home décor, gifting..."></label><label>Origin / craft region<input name="origin" placeholder="Village / district / region"></label><label>Traditional technique<input name="technique" placeholder="e.g. hand weaving"></label><label>Tags<input name="tags" placeholder="handmade, traditional, eco-friendly"></label><label>GI status<input name="gi_status" placeholder="e.g. GI tagged / leave blank"></label><label>ODOP status<input name="odop_status" placeholder="e.g. ODOP / leave blank"></label></div>
+<div class="ai-panel"><div><span class="ai-icon">🤖</span><div><h2>विवरण · Description</h2><p>एक भाषा चुनो — पूरा विवरण उसी भाषा में बनेगा (mix नहीं)</p></div></div>
+<div class="form-grid">
+<label>विवरण की भाषा
+<select id="aiLanguage">
+{% for label, code in languages.items() %}
+  <option value="{{ code }}" {% if code == 'hi' %}selected{% endif %}>{{ label }}</option>
+{% endfor %}
+</select>
+</label>
+<div></div>
+</div>
+<div class="hero-actions">
+<button type="button" class="btn primary" onclick="generateDescription()">✨ विवरण बनाओ</button>
+<button type="button" class="btn secondary" id="voiceBtn" onclick="startVoiceCatalog()">🎙️ आवाज़ से</button>
+<button type="button" class="btn secondary" onclick="speakText(document.getElementById('description').value)">🔊 सुनो</button>
+<button type="button" class="btn secondary" onclick="stopSpeaking()">⏹ रोकें</button>
+</div></div>
+<div id="voiceStatus" class="muted" aria-live="polite"></div><label>Description<textarea id="description" name="description" rows="6" placeholder="Write a description or generate one."></textarea></label>
+<label>Craft / Artisan Story<textarea name="craft_story" rows="5" placeholder="History, tradition, artisan story, cultural significance..."></textarea></label>
+<div class="ai-panel"><div><span class="ai-icon">💰</span><div><h2>Dynamic Pricing Assistant</h2><p>Enter your costs. AI suggests competitive price using category demand + description signals.</p></div></div><div class="form-grid compact-grid"><label>Other/base cost ₹<input id="baseCost" type="number" min="0" value="0"></label><label>Material cost ₹<input id="materialCost" type="number" min="0" value="0"></label><label>Labour cost ₹<input id="laborCost" type="number" min="0" value="0"></label><label>Product category<select id="pricingCategory">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label></div><button type="button" class="btn primary" onclick="getSmartPrice()">💡 Get Free Smart Price</button><div id="priceSuggestion" class="ai-result" hidden></div></div>
+<div class="ai-panel image-studio" id="ai-studio"><div><span class="ai-icon">🖼️</span><div><h2>AI Studio — Image Enhancer & Camera</h2><p>Capture with device camera or upload. AI cleans background, corrects lighting & prepares e-commerce ready photos.</p></div></div>
+<label>Product image (upload)<input id="imageInput" type="file" name="image" accept=".png,.jpg,.jpeg,.webp,.gif,image/*" capture="environment"></label>
+<div class="camera-box" id="cameraBox" style="display:none"><video id="cameraVideo" autoplay playsinline muted></video></div>
+<div class="camera-actions">
+  <button type="button" class="btn secondary" id="startCameraBtn" onclick="startCamera()">📷 Open Camera</button>
+  <button type="button" class="btn primary" id="captureBtn" onclick="capturePhoto()" style="display:none">📸 Capture Photo</button>
+  <button type="button" class="btn secondary" id="stopCameraBtn" onclick="stopCamera()" style="display:none">⏹ Close Camera</button>
+</div>
+<div class="studio-controls"><label>Brightness<input id="brightness" type="range" min="80" max="125" value="100"></label><label>Contrast<input id="contrast" type="range" min="80" max="125" value="100"></label><label>Saturation<input id="saturation" type="range" min="80" max="125" value="100"></label></div>
+<div class="upload-preview studio-preview" id="preview"><span>📷</span><p>Image preview — use camera or upload</p></div>
+<div class="studio-actions"><button type="button" class="btn secondary" onclick="autoEnhance()">✨ Auto Enhance</button><button type="button" class="btn secondary" onclick="resetEnhance()">↺ Reset</button><button type="button" class="btn secondary" onclick="serverEnhance()">☁️ Server AI Clean</button></div></div>
+<button class="btn primary large" type="submit">＋ Publish Product</button></form></div>{% endblock %}
+{% block scripts %}<script>
+let originalFile=null,originalImage=null;const input=document.getElementById('imageInput'),preview=document.getElementById('preview'),canvas=document.createElement('canvas'),brightness=document.getElementById('brightness'),contrast=document.getElementById('contrast'),saturation=document.getElementById('saturation');input.addEventListener('change',()=>{originalFile=input.files[0]||null;if(!originalFile){preview.innerHTML='<span>📷</span><p>Image preview</p>';return}const r=new FileReader();r.onload=e=>{originalImage=new Image();originalImage.onload=renderEnhanced;originalImage.src=e.target.result};r.readAsDataURL(originalFile)});[brightness,contrast,saturation].forEach(x=>x.addEventListener('input',renderEnhanced));function renderEnhanced(){if(!originalImage)return;const max=1400,scale=Math.min(1,max/Math.max(originalImage.naturalWidth,originalImage.naturalHeight));canvas.width=Math.max(1,Math.round(originalImage.naturalWidth*scale));canvas.height=Math.max(1,Math.round(originalImage.naturalHeight*scale));const c=canvas.getContext('2d');c.filter=`brightness(${brightness.value}%) contrast(${contrast.value}%) saturate(${saturation.value}%)`;c.drawImage(originalImage,0,0,canvas.width,canvas.height);c.filter='none';preview.innerHTML='';const img=document.createElement('img');img.src=canvas.toDataURL('image/jpeg',.92);preview.appendChild(img)}function autoEnhance(){brightness.value=102;contrast.value=104;saturation.value=103;renderEnhanced();serverEnhance();}function resetEnhance(){brightness.value=100;contrast.value=100;saturation.value=100;renderEnhanced()}
+function startVoiceCatalog(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){document.getElementById('voiceStatus').textContent='Voice recognition is not supported in this browser. You can type the artisan story instead.';return}const r=new SR();const code={en:'en-IN',hi:'hi-IN',bn:'bn-IN',gu:'gu-IN',mr:'mr-IN',ta:'ta-IN',te:'te-IN',kn:'kn-IN',ml:'ml-IN',pa:'pa-IN'}[aiLanguage.value]||'hi-IN';r.lang=code;r.interimResults=false;r.maxAlternatives=1;document.getElementById('voiceStatus').textContent='Listening… describe the product naturally.';r.onresult=e=>{const t=e.results[0][0].transcript;document.querySelector('[name=craft_story]').value=t;document.getElementById('voiceStatus').textContent='Voice captured. Generating catalog copy…';fetch('/api/ai/voice-description',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({transcript:t,name:productName.value,category:productCategory.value,state:productState.value,material:material.value,use:bestUse.value,language:aiLanguage.value})}).then(x=>x.json()).then(d=>{if(d.description)description.value=d.description;document.getElementById('voiceStatus').textContent='AI catalog description generated from your voice.'})};r.onerror=()=>document.getElementById('voiceStatus').textContent='Voice capture stopped. Please try again or type the details.';r.start()}
+async function generateDescription(){const res=await fetch('/api/ai/description',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:productName.value,category:productCategory.value,state:productState.value,material:material.value,use:bestUse.value,language:aiLanguage.value})});const d=await res.json();if(d.description)description.value=d.description}async function getSmartPrice(){const res=await fetch('/api/ai/pricing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cost:baseCost.value,material:materialCost.value,labor:laborCost.value,category:pricingCategory.value,name:productName.value,description:(document.getElementById('description')||{}).value||''})});const d=await res.json();const b=document.getElementById('priceSuggestion');b.hidden=false;if(d.error){b.innerHTML=d.error;return}if(d.suggested_price){document.getElementById('productPrice').value=d.suggested_price}let a=d.analysis||{};b.innerHTML=`<b style="font-size:1.25rem">Suggested: ₹${d.suggested_price}</b><br><span>Range: ₹${d.range_low} – ₹${d.range_high}</span><br><small>Confidence: ${a.confidence||'—'} · Signals: ${(a.matched_signals||[]).join(', ')}</small><br><span class="muted">${d.note||''}</span>`}document.getElementById('productForm').addEventListener('submit',e=>{if(originalImage){e.preventDefault();canvas.toBlob(blob=>{const f=new File([blob],'enhanced-product.jpg',{type:'image/jpeg'});const dt=new DataTransfer();dt.items.add(f);input.files=dt.files;e.target.submit()},'image/jpeg',.92)}});
+
+let cameraStream = null;
+async function startCamera(){
+  try{
+    cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment', width:{ideal:1280}, height:{ideal:960}}, audio:false});
+    const v = document.getElementById('cameraVideo');
+    v.srcObject = cameraStream;
+    document.getElementById('cameraBox').style.display = 'block';
+    document.getElementById('captureBtn').style.display = 'inline-block';
+    document.getElementById('stopCameraBtn').style.display = 'inline-block';
+    document.getElementById('startCameraBtn').style.display = 'none';
+  }catch(e){
+    alert('Camera access denied or not available. Please allow camera permission or use file upload.');
+  }
+}
+function stopCamera(){
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; }
+  document.getElementById('cameraBox').style.display = 'none';
+  document.getElementById('captureBtn').style.display = 'none';
+  document.getElementById('stopCameraBtn').style.display = 'none';
+  document.getElementById('startCameraBtn').style.display = 'inline-block';
+}
+function capturePhoto(){
+  const v = document.getElementById('cameraVideo');
+  if(!v || !v.videoWidth) return;
+  const c = document.createElement('canvas');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  c.toBlob(blob=>{
+    const f = new File([blob], 'camera-capture.jpg', {type:'image/jpeg'});
+    const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
+    originalFile = f;
+    const r = new FileReader();
+    r.onload = e => { originalImage = new Image(); originalImage.onload = renderEnhanced; originalImage.src = e.target.result; };
+    r.readAsDataURL(f);
+    stopCamera();
+  }, 'image/jpeg', 0.92);
+}
+async function serverEnhance(){
+  if(!input.files || !input.files[0]){ alert('Please capture or upload an image first'); return; }
+  const fd = new FormData();
+  fd.append('image', input.files[0]);
+  fd.append('brightness', brightness.value);
+  fd.append('contrast', contrast.value);
+  fd.append('saturation', saturation.value);
+  fd.append('clean_background', '1');
+  try{
+    document.getElementById('preview').innerHTML = '<p>Processing with AI Studio…</p>';
+    const res = await fetch('/api/ai/image-enhance', {method:'POST', body:fd});
+    const d = await res.json();
+    if(d.error){ alert(d.error); return; }
+    if(d.url){
+      const img = new Image();
+      img.onload = ()=>{ originalImage = img; renderEnhanced(); };
+      img.src = d.url + '?t=' + Date.now();
+      // also update the file input with the enhanced version if possible
+      fetch(d.url).then(r=>r.blob()).then(blob=>{
+        const f = new File([blob], 'ai-enhanced.jpg', {type:'image/jpeg'});
+        const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files; originalFile = f;
+      });
+    }
+  }catch(e){ alert('Server enhance failed: '+e.message); }
+}
+
+</script>{% endblock %}
